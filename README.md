@@ -2,6 +2,20 @@
 
 This repository contains a custom Cloudpath template that integrates with Mist's external guest portal functionality.
 
+## Table of Contents
+
+- [Files](#files)
+- [Features](#features)
+- [How It Works](#how-it-works)
+- [Technical Details](#technical-details)
+- [Usage](#usage)
+- [Mist Configuration](#mist-configuration)
+- [Configuration](#configuration)
+  - [MIST Configuration](#mist-configuration-1)
+  - [Cloudpath Configuration](#cloudpath-configuration)
+- [Security Note](#security-note)
+- [Disclaimer](#disclaimer)
+
 ## Files
 
 - `cloudpath_mist.html` - The main Cloudpath template with Mist integration
