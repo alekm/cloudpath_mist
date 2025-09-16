@@ -48,6 +48,22 @@ The template expects the following Mist variables to be available:
 - `authorize_url`
 - `CLIENT_IP`
 
+## Configuration
+
+Before using this template, you must configure your Mist WLAN API Key:
+
+1. Open `cloudpath_mist.html` in a text editor
+2. Find the line: `const MIST_SECRET = 'YOUR_MIST_WLAN_API_KEY_HERE';`
+3. Replace `YOUR_MIST_WLAN_API_KEY_HERE` with your actual Mist WLAN API Key
+4. Save the file
+
+### Finding Your Mist WLAN API Key
+
+1. Log into your Mist dashboard
+2. Navigate to Settings > WLANs
+3. Select your guest WLAN
+4. Find the "API Key" field and copy the value
+
 ## Security Note
 
-The Mist secret key is currently hardcoded in the template. For production use, consider implementing a more secure method of key management.
+The Mist secret key must be configured in the template before deployment. For production use, consider implementing a more secure method of key management than hardcoding in the template.

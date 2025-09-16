@@ -57,9 +57,13 @@
 
 <script>
 // Mist Guest Portal - Production Version
+// 
+// CONFIGURATION REQUIRED:
+// Replace 'YOUR_MIST_WLAN_API_KEY_HERE' with your actual Mist WLAN API Key
+// This can be found in your Mist dashboard under Settings > WLANs > [Your WLAN] > API Key
 
 // Mist configuration
-const MIST_SECRET = 'V1ueFFcym4DX5hfU1zOaSHF7QEe61ZuTngltD0md';
+const MIST_SECRET = 'YOUR_MIST_WLAN_API_KEY_HERE';
 const DEBUG_MODE = false; // Production mode
 
 // Cloudpath submission guard (match default behavior)
@@ -112,7 +116,7 @@ async function hmacSha1(key, message) {
         
         return signatureBase64;
     } catch (error) {
-        console.error('Error generating HMAC-SHA1:', error);
+        // Error generating HMAC-SHA1
         return btoa('fallback_signature_' + Date.now());
     }
 }
@@ -194,8 +198,8 @@ async function processMistAuthorization() {
         // Store the Mist URL for later use (don't redirect immediately)
         window.mistAuthorizationUrl = finalUrl;
     } catch (error) {
-        console.error('Error in processMistAuthorization:', error);
-        alert('Error processing authorization: ' + error.message);
+        // Error in processMistAuthorization
+        alert('Error processing authorization. Please try again.');
     }
 }
 
@@ -217,8 +221,8 @@ async function processMistAndSubmit() {
         // Submit the Cloudpath form to continue the flow normally
         document.forms[0].submit();
     } catch (error) {
-        console.error('Error in processMistAndSubmit:', error);
-        alert('Error processing authorization: ' + error.message);
+        // Error in processMistAndSubmit
+        alert('Error processing authorization. Please try again.');
         submitted = false;
     }
 }
