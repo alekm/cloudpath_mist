@@ -52,10 +52,36 @@ The template expects the following Mist variables to be available:
 
 Before using this template, you must configure your Mist WLAN API Key:
 
+### MIST Configuration:
+- Create a new WLAN for your environment in Mist Dashboard.
+- Under Guest Portal, select Forward to external portal
+- Create an arbitrary Portal URL for now, as we just need to gather the API Secret for the Cloudpath setup.  We will revisit this later.
+- Add `portal.mist.com, portal.ac2.mist.com` to the Allowed Hostnames
+- Create your WLAN
+
+![Mist Portal Configuration](images/mistportal.png)
+
+### Cloudpath Configuration
+
 1. Open `cloudpath_mist.html` in a text editor
 2. Find the line: `const MIST_SECRET = 'YOUR_MIST_WLAN_API_KEY_HERE';`
 3. Replace `YOUR_MIST_WLAN_API_KEY_HERE` with your actual Mist WLAN API Key
 4. Save the file
+5. Create a new Workflow in CloudPath
+6. Ensure your Workflow has a data prompt page by creating a new step and selecting "Prompt the user for information"
+7. The new prompt step should have 2 input fields with USERNAME and EMAIL as the variables:
+
+![Cloudpath Prompt Configuration](images/prompt.png)
+8. After the prompt step, create a message step by selecting the "Display a message" type
+9. Select "A new messages created by uploading an HTML file and select your cloudpath_mist.html file.
+10. Publish your new workflow and take note of the Enrollment Portal URL.  You will need this for the MIST setup.
+
+![Cloudpath Workflow Configuration](images/workflow.png)
+11. Return to MIST and enter your Portal URL under Guest Portal.
+
+
+
+
 
 ### Finding Your Mist WLAN API Key
 
