@@ -1,0 +1,228 @@
+<script>var submitted=false;</script>
+<form name='message' action='${CONTINUE_BUTTON_URL}' method='post' onsubmit='showPleaseWait();'>
+<div class='cpx-content-main cpx-dataPrompt-main'>
+  <div id='cpx-title' class='cpx-content-title cpx-dataPrompt-title'>
+    Credential Verification
+  </div>
+  <div id='cpx-messageHtml' class='cpx-content-messageHtml cpx-dataPrompt-messageHtml'>
+    <div style="text-align: center; margin-bottom: 20px;">
+        <p style="color: #666; margin-bottom: 20px; margin-top: 0;">Please review the information below and confirm it is correct before proceeding.</p>
+    </div>
+    
+    <div style="background: #fff; padding: 20px; border: 1px solid #ddd; margin-bottom: 20px;">
+        <div style="margin-bottom: 12px;">
+            <label style="display: block; font-weight: bold; color: #555; margin-bottom: 4px;">Full Name:</label>
+            <div style="padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; color: #333;">${USERNAME}</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+            <label style="display: block; font-weight: bold; color: #555; margin-bottom: 4px;">Email Address:</label>
+            <div style="padding: 8px; background: #f8f9fa; border: 1px solid #dee2e6; color: #333;">${EMAIL}</div>
+        </div>
+    </div>
+    
+    <div style="background: #e7f3ff; padding: 15px; border-left: 4px solid #007cba; margin-bottom: 20px;">
+        <p style="color: #333; margin: 0; font-size: 14px;">
+            <strong>Note:</strong> If any of the information above is incorrect, click the "Back to Edit" button below to make changes.
+        </p>
+    </div>
+    
+    <p style="color: #666; font-size: 14px; text-align: center; margin-bottom: 20px;">
+        If the information is correct, click "Confirm & Continue" to proceed with network authorization.
+    </p>
+  </div>
+
+  <div id='cpx-bottomLabel' class='cpx-content-bottomTitle cpx-dataPrompt-bottomTitle'>
+    ${BOTTOM_LABEL}
+  </div>
+
+  <div class='cpx-content-line cpx-dataPrompt-line'></div>
+  <div class='cpx-content-buttonBar cpx-dataPrompt-buttonBar'>
+    <div id='continue-div' class='cpx-continue cpx-dataPrompt-continue'>
+      <a style='display: ${CONTINUE_BUTTON_DISPLAY};' onfocus='testEula();' onclick='if (submitted == false) { submitted = true; showPleaseWait(); processMistAndSubmit(); }' id="continue-button" href="#" tabindex="1">Confirm & Continue</a>
+    </div>
+    <div id='back-div' class='cpx-back cpx-dataPrompt-back ${BACK_BUTTON_CLASS}'>
+      <a id="back-button" href='rewind/1' tabindex="1">${BACK_BUTTON_TEXT}</a>
+    </div>
+    <div class="cpx-hidden-submit">
+      <input type="hidden" name='_csrf' value='${CSRF_TOKEN}'/>
+      <input type="submit"/>
+    </div>
+    <div style='clear: both;'></div>
+  </div>
+  <input type="hidden" name="USERNAME" value="${USERNAME}"/>
+  <input type="hidden" name="EMAIL" value="${EMAIL}"/>
+  <input type="hidden" name='_csrf' value='${CSRF_TOKEN}'/>
+</div>
+</form>
+
+<script>
+// Mist Guest Portal - Production Version
+
+// Mist configuration
+const MIST_SECRET = 'V1ueFFcym4DX5hfU1zOaSHF7QEe61ZuTngltD0md';
+const DEBUG_MODE = false; // Production mode
+
+// Cloudpath submission guard (match default behavior)
+var submitted = false;
+
+    // Get Mist data from Cloudpath template variables
+    const mistData = {
+        wlan_id: '${wlan_id}',
+        ap_mac: '${ap_mac}',
+        client_mac: '${client_mac}',
+        url: '${url}',
+        ap_name: '${ap_name}',
+        site_name: '${site_name}',
+        authorize_url: '${authorize_url}',
+        client_ip: '${CLIENT_IP}'
+    };
+
+// Mist data loaded from Cloudpath template variables
+
+// Proper HMAC-SHA1 implementation using Web Crypto API
+async function hmacSha1(key, message) {
+    try {
+        
+        // Check if Web Crypto API is available
+        if (!window.crypto || !window.crypto.subtle) {
+            throw new Error('Web Crypto API not available');
+        }
+        
+        // Convert key to ArrayBuffer
+        const keyBuffer = new TextEncoder().encode(key);
+        
+        // Import the key for HMAC
+        const cryptoKey = await crypto.subtle.importKey(
+            'raw',
+            keyBuffer,
+            { name: 'HMAC', hash: 'SHA-1' },
+            false,
+            ['sign']
+        );
+        
+        // Convert message to ArrayBuffer
+        const messageBuffer = new TextEncoder().encode(message);
+        
+        // Sign the message
+        const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageBuffer);
+        
+        // Convert to base64
+        const signatureArray = new Uint8Array(signature);
+        const signatureBase64 = btoa(String.fromCharCode(...signatureArray));
+        
+        return signatureBase64;
+    } catch (error) {
+        console.error('Error generating HMAC-SHA1:', error);
+        return btoa('fallback_signature_' + Date.now());
+    }
+}
+
+// URL encode function
+function urlEncode(str) {
+    return encodeURIComponent(str);
+}
+
+// Base64 encode function
+function base64Encode(str) {
+    return btoa(str);
+}
+
+// Resolve Cloudpath template placeholders like ${var} to empty string
+function resolveTemplate(val) {
+    if (val === undefined || val === null) return '';
+    const s = String(val).trim();
+    return (s.startsWith('${') && s.endsWith('}')) ? '' : s;
+}
+
+// Ensure/overwrite a hidden field on the form
+function setHiddenField(fieldName, fieldValue) {
+    const form = document.forms[0]; // Use first form (the message form)
+    let input = form.querySelector(`input[name="${fieldName}"]`);
+    if (!input) {
+        input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = fieldName;
+        form.appendChild(input);
+    }
+    input.value = (fieldValue ?? '').toString();
+}
+
+// Process Mist authorization
+async function processMistAuthorization() {
+    try {
+        const form = document.forms[0];
+        const formData = new FormData(form);
+        const name = formData.get('USERNAME');
+        const email = formData.get('EMAIL');
+        
+    // Build context string (matching PHP format exactly)
+    const authorize_min = 525600;  // Duration in minutes
+    const download_kbps = 0;       // Download limit
+    const upload_kbps = 0;         // Upload limit  
+    const quota_mbytes = 0;        // Quota limit
+    const context = `${mistData.wlan_id}/${mistData.ap_mac}/${mistData.client_mac}/${authorize_min}/${download_kbps}/${upload_kbps}/${quota_mbytes}`;
+        
+    // Generate token (base64 encoded context, then URL encoded - matching PHP exactly)
+    const tokenWithPadding = base64Encode(context);
+    const token = urlEncode(tokenWithPadding); // URL encode the base64 token like PHP does
+    const tokenForPayload = token; // Use the URL-encoded token in payload
+    
+        // Generate expires timestamp (2 minutes from now - matching PHP)
+        const expires = Math.floor(Date.now() / 1000) + 120; // Current time + 2 minutes
+        
+    // Build extra parameters (matching PHP format exactly)
+    const forward = urlEncode(resolveTemplate(mistData.url)); // URL encode the forward URL like PHP does
+    const field1 = '';
+    const field2 = '';
+    const field3 = '';
+    const field4 = '';
+    const extra = `&forward=${forward}&name=${urlEncode(name)}&field1=${urlEncode(field1)}&field2=${urlEncode(field2)}&field3=${urlEncode(field3)}&field4=${urlEncode(field4)}&email=${urlEncode(email)}`;
+    
+    // Build payload for signature (same order as PHP: expires, token, extra)
+    const payload = `expires=${expires}&token=${tokenForPayload}${extra}`;
+        
+        // Generate signature (HMAC-SHA1 of payload with secret)
+        const signature = await hmacSha1(MIST_SECRET, payload);
+        
+        // Build final URL using resolved authorize_url (fallback to default)
+        const rawAuthorize = resolveTemplate(mistData.authorize_url);
+        const authorizeUrl = rawAuthorize && /^https?:\/\//i.test(rawAuthorize)
+            ? rawAuthorize
+            : 'https://portal.mist.com/authorize';
+        const finalUrl = `${authorizeUrl}?signature=${urlEncode(signature)}&${payload}`;
+        
+        // Store the Mist URL for later use (don't redirect immediately)
+        window.mistAuthorizationUrl = finalUrl;
+    } catch (error) {
+        console.error('Error in processMistAuthorization:', error);
+        alert('Error processing authorization: ' + error.message);
+    }
+}
+
+// Process Mist authorization and submit form
+async function processMistAndSubmit() {
+    try {
+        // Build Mist URL first
+        await processMistAuthorization();
+
+        if (!window.mistAuthorizationUrl) {
+            alert('Error: Could not generate Mist authorization URL');
+            submitted = false;
+            return;
+        }
+
+        // Set RETURN_URL with the Mist authorization URL
+        setHiddenField('RETURN_URL', window.mistAuthorizationUrl);
+
+        // Submit the Cloudpath form to continue the flow normally
+        document.forms[0].submit();
+    } catch (error) {
+        console.error('Error in processMistAndSubmit:', error);
+        alert('Error processing authorization: ' + error.message);
+        submitted = false;
+    }
+}
+
+// Focus management (matching Cloudpath pattern)
+"${CONTINUE_BUTTON_DISPLAY}" == "block"? document.getElementById('continue-button').focus():document.getElementById('back-button').focus();
+</script>
