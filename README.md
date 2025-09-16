@@ -80,16 +80,6 @@ Before using this template, you must configure your Mist WLAN API Key:
 11. Return to MIST and enter your Portal URL under Guest Portal.
 
 
+# Security Note
 
-
-
-### Finding Your Mist WLAN API Key
-
-1. Log into your Mist dashboard
-2. Navigate to Settings > WLANs
-3. Select your guest WLAN
-4. Find the "API Key" field and copy the value
-
-## Security Note
-
-The Mist secret key must be configured in the template before deployment. For production use, consider implementing a more secure method of key management than hardcoding in the template.
+The MIST API Key will be visible in the web source.  It could allow attackers to bypass CloudPath and create authorized devices by formatting the correct URL for MIST.  This should just be considered a workaround until CloudPath implements a production version with server-side processing.  The author considers the risk to be low, but not non-existent.
