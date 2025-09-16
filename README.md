@@ -83,3 +83,7 @@ Before using this template, you must configure your Mist WLAN API Key:
 # Security Note
 
 The MIST API Key will be visible in the web source.  It could allow attackers to bypass CloudPath and create authorized devices by formatting the correct URL for MIST.  This should just be considered a workaround until CloudPath implements a production version with server-side processing.  The author considers the risk to be low, but not non-existent.
+
+## Disclaimer
+
+This project is an independent work created by the author and is not affiliated with, endorsed by, or officially supported by Ruckus Wireless, CommScope, or Mist Systems. This is a community-contributed solution for integrating Cloudpath with Mist's external guest portal functionality. Use at your own discretion and ensure compatibility with your specific environment before deploying in production.
